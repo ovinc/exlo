@@ -16,6 +16,11 @@ from .general import USERS, PROJECTS, COMPONENTS, EQUIPMENT
 # ============================= General Classes ==============================
 
 
+class UnknownComponent(Exception):
+    """Custom exception raised when component listed in equipment is unknown"""
+    pass
+
+
 class User(JsonData):
     """Class to decribe and manage user information"""
 
@@ -46,3 +51,14 @@ class Equipment(JsonData):
     category = 'equipment'
     filename = 'equipment.json'
     all_data = EQUIPMENT
+
+    def check_components(self):
+        """Verify that the components listed in the equipment exist."""
+        unknown_components = []
+        for component in self.components:
+            if component not in COMPONENTS:
+                unknown_components.append(component)
+
+        if len(unknown_components) > 0:
+            raise UnknownComponent(f'In equipment "{self.name}": '
+                                   f'{unknown_components}')

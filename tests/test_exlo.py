@@ -1,11 +1,12 @@
 """Tests for the exlo module."""
 
 # Standard library
-from pathlib import Path
-
-# Non standard
-import pytest
+from exlo import Equipment
+from exlo.general import EQUIPMENT
 
 
-def test_exlo():
-    pass
+def test_components():
+    """Check that components listed in each equipment exist."""
+    for equip_name in EQUIPMENT:
+        equipment = Equipment(equip_name)
+        equipment.check_components()
