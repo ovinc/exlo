@@ -90,6 +90,14 @@ setup.check_components()
 which raises a `UnknownComponent` exception.
 
 
+Testing
+=======
+
+With `pytest`:
+```bash
+pytest
+```
+
 Misc. info
 ==========
 
