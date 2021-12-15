@@ -12,7 +12,7 @@ from dateutil.parser import parse
 # Local imports
 from .general import DATA_FOLDER, LOCAL_TIMEZONE, JsonData
 from .general import DATA_FOLDER, CONFIG, LOCAL_TIMEZONE
-from .general import COMPONENTS, EQUIPMENT, USERS
+from .general import COMPONENTS, SETUPS, USERS
 
 
 # ================================ Log class =================================
@@ -24,7 +24,7 @@ class Log:
 
     number: int
     user: str
-    equipment: str
+    setup: str
     project: str
     start: str
     end: str
@@ -61,13 +61,13 @@ class Logger:
         # json files containing data and misc. info
         self.log_file = DATA_FOLDER / CONFIG['log file']
         self.users_file = DATA_FOLDER / 'users.json'
-        self.equipment_file = DATA_FOLDER / 'equipment.json'
+        self.setups_file = DATA_FOLDER / 'setups.json'
         self.projects_file = DATA_FOLDER / 'projects.json'
 
-        # Dicts of config and misc. info (users, equipment etc.)
+        # Dicts of config and misc. info (users, setups etc.)
         self.config = CONFIG
         self.users = JsonData._from_json(self.users_file)
-        self.equipment = JsonData._from_json(self.equipment_file)
+        self.setups = JsonData._from_json(self.setups_file)
         self.projects = JsonData._from_json(self.projects_file)
 
         try:
@@ -86,7 +86,7 @@ class Logger:
     def _add_default_values(self, **kwargs):
         """Add default values to non-specified entries."""
 
-        names = 'user', 'equipment', 'project', 'start', 'end', 'note'
+        names = 'user', 'setup', 'project', 'start', 'end', 'note'
         params = {}
 
         for ppty in names:
@@ -109,14 +109,14 @@ class Logger:
     def _format_parameters(self, params):
         """Format entries in user-input log by doing the following things:
 
-        - Check that user, project and equipment are documented in json files.
+        - Check that user, project and setup are documented in json files.
         - Format start and end dates to correct str format.
         """
         if params['user'] not in self.users:
             raise ValueError('Unknown user. Check users.json')
 
-        if params['equipment'] not in self.equipment:
-            raise ValueError('Undocumented equipment. Check equipment.json')
+        if params['setup'] not in self.setups:
+            raise ValueError('Undocumented setup. Check setups.json')
 
         if params['project'] not in self.projects:
             raise ValueError('Unknown project. Check projects.json')
@@ -131,7 +131,7 @@ class Logger:
 
         The possible kwargs are:
             - `user`: name of user, has to match one of those in Users.json
-            - `equipment`: name of equipment, must match Equipment.json items
+            - `setup`: name of setup, must match setups.json items
             - `project`: name of project, must match Projects.json items
             - `start`: start datetime, can be loose (e.g. "9am")
             - `end`: end datetime

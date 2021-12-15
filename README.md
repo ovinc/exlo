@@ -23,7 +23,7 @@ The companion `exlo_data` module contains several `json` files that need to be f
 
 - `config.json` (misc. configuration)
 - `users.json` (list of users and their information)
-- `equipment.json` (list of equipment and related info)
+- `setups.json` (list of setups and related info)
 - `projects.json` (list of projects the equipment can be used for).
 
 Once this configuration step is done, one can instantiate and use the `Logger` class to create and manage logs for the equipment:
@@ -33,11 +33,11 @@ from exlo import Logger
 logger = Logger()
 
 # Add log; any field not provided will use default values from config.json
-# The user, equipment & project must match one of those in the config files
+# The user, setup & project must match one of those in the config files
 # The date parser uses dateutil.parser and accepts a variety of date formats
 # By default the day is present day, and timezone is the local timezone.
 # In case of ambiguity in day/month order, day first is assumed.
-logger.add(user='Martin', equipment='Optic1', project='Dupont-ERC-2020',
+logger.add(user='Martin', setup='Optic1', project='Dupont-ERC-2020',
            start='9am', end='15:00', note='First test of the new laser')
 
 # Save this new log to the log list in the json file
@@ -47,7 +47,7 @@ logger.save()
 logger.logs
 
 # Update any of the field in the last log; save() must be called again.
-logger.update(equipment='Optic2')
+logger.update(setup='Optic2')
 logger.update(42, end='16:30')  # update not the last log but another one (#42)
 logger.save()
 
@@ -69,23 +69,23 @@ log.end_datetime
 log.duration
 ```
 
-The users, projects, components and equipment are also represented by classes (`User`, `Project`, `Component`, `Equipment`, respectively), which define their attributes automatically from the `.json` files:
+The users, projects, components and setup are also represented by classes (`User`, `Project`, `Component`, `Setup`, respectively), which define their attributes automatically from the `.json` files:
 
 ```python
-from exlo import User, Project, Component, Equipment
+from exlo import User, Project, Component, Setup
 
 user = User('Martin')
 user.status
 >>> Postdoc
 
-equip = Equipment('Optic1')
-equip.components
+setup = Setup('Optic1')
+setup.components
 >>> ["Laser", "Microscope"]
 ```
 
-The `Equipment` class also has a method to check that the listed components are indeed described in the `components.json` file.
+The `Setup` class also has a method to check that the listed components are indeed described in the `components.json` file.
 ```python
-equip.check_components()
+setup.check_components()
 ```
 which raises a `UnknownComponent` exception.
 

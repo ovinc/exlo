@@ -1,12 +1,12 @@
 """Tests for the exlo module."""
 
 # Standard library
-from exlo import Equipment
-from exlo.general import EQUIPMENT
+from exlo import Setup
+from exlo.general import SETUPS
 
 
 def test_components():
-    """Check that components listed in each equipment exist."""
-    for equip_name in EQUIPMENT:
-        equipment = Equipment(equip_name)
-        equipment.check_components()
+    """Check that components listed in each setup exist."""
+    for setup_name in SETUPS:
+        setup = Setup(setup_name)
+        setup.check_components()
