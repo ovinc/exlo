@@ -8,6 +8,8 @@ Install
 
 Before install, the separate config/data package `exlo_data` must be installed, see https://github.com/ovinc/exlo_data
 
+After this, install the `exlo` package with:
+
 ```bash
 git clone https://github.com/ovinc/exlo
 cd exlo
@@ -66,6 +68,26 @@ log.end_datetime
 # timedelta object
 log.duration
 ```
+
+The users, projects, components and equipment are also represented by classes (`User`, `Project`, `Component`, `Equipment`, respectively), which define their attributes automatically from the `.json` files:
+
+```python
+from exlo import User, Project, Component, Equipment
+
+user = User('Martin')
+user.status
+>>> Postdoc
+
+equip = Equipment('Optic1')
+equip.components
+>>> ["Laser", "Microscope"]
+```
+
+The `Equipment` class also has a method to check that the listed components are indeed described in the `components.json` file.
+```python
+equip.check_components()
+```
+which raises a `UnknownComponent` exception.
 
 
 Misc. info
