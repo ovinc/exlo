@@ -135,7 +135,7 @@ The logger config and data are managed in a separate package `exlo_data` (see *I
 (installed automatically by pip if necessary)
 
 - python-dateutil
-- tzlocal
+- tzlocal < 3.0 (typically, 2.1; after this, problems arise due to dropped pytz support)
 - importlib-metadata
 
 
