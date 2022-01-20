@@ -11,6 +11,7 @@ import json
 # local imports
 from .general import JsonData
 from .general import USERS, PROJECTS, COMPONENTS, SETUPS
+from .general import USERS_FILE, PROJECTS_FILE, COMPONENTS_FILE, SETUPS_FILE
 
 
 # ============================= General Classes ==============================
@@ -25,7 +26,7 @@ class User(JsonData):
     """Class to decribe and manage user information"""
 
     category = 'user'
-    filename = 'users.json'
+    file = USERS_FILE
     all_data = USERS
 
 
@@ -33,7 +34,7 @@ class Project(JsonData):
     """Class to decribe and manage project information"""
 
     category = 'project'
-    filename = 'projects.json'
+    file = PROJECTS_FILE
     all_data = PROJECTS
 
 
@@ -41,15 +42,48 @@ class Component(JsonData):
     """Class to decribe and manage component information"""
 
     category = 'component'
-    filename = 'components.json'
+    file = COMPONENTS_FILE
     all_data = COMPONENTS
+
+    def change_name_to(self, new_name):
+        """Update name of component in all places where it needs to be changed.
+
+        Will change the name of the component in
+        - components.json
+        - setups.json
+
+        Input
+        -----
+        new_name: str
+
+        Example
+        -------
+        Component('Microscope').change_name_to('Stereoscope')
+        """
+        if new_name in COMPONENTS:
+            raise ValueError(f'Component name {new_name} already exists!')
+
+        # Update components.json ---------------------------------------------
+
+        COMPONENTS[new_name] = COMPONENTS.pop(self.name)
+        self._to_json(self.file, COMPONENTS)
+
+        # Update setups.json -------------------------------------------------
+
+        for setup_data in SETUPS.values():
+            comps = setup_data['components']
+            if self.name in comps:
+                new_comps = [new_name if c == self.name else c for c in comps]
+                setup_data['components'] = new_comps
+
+        self._to_json(SETUPS_FILE, SETUPS)
 
 
 class Setup(JsonData):
     """Class to decribe and manage setup information"""
 
     category = 'setup'
-    filename = 'setups.json'
+    file = SETUPS_FILE
     all_data = SETUPS
 
     def check_components(self):

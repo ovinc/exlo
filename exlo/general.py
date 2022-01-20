@@ -2,14 +2,10 @@
 
 
 # Standard library imports
-from datetime import datetime
 from pathlib import Path
-from dataclasses import dataclass
-from copy import copy
 import json
 
 # Non standard imports
-from dateutil.parser import parse
 from tzlocal import get_localzone
 
 # Log data and config
@@ -24,14 +20,13 @@ class JsonData:
     """Base class for data stored in json files (e.g. setups, users etc.)"""
 
     category = None  # Category of data (e.g. 'user', 'project', etc.)
-    filename = None  # file (str) in which data is stored (define in subclass)
+    file = None  # file (Path object) in which data is stored (define in subclass)
     all_data = {}  # Dict of data loaded from json file (define in subclass)
 
     def __init__(self, name):
         """Create object by getting attributes in json file"""
 
         self.name = name
-        self.file = DATA_FOLDER / self.filename
 
         # create attributes based on information in json file
         try:
@@ -59,11 +54,24 @@ class JsonData:
 
 # =============================== Misc. Config ===============================
 
+config_filename = 'config.json'
+users_filename = 'users.json'
+projects_filename = 'projects.json'
+components_filename = 'components.json'
+setups_filename = 'setups.json'
 
-CONFIG = JsonData._from_json(DATA_FOLDER / 'config.json')
+# ============================= Misc. Constants ==============================
+
+CONFIG_FILE = DATA_FOLDER / config_filename
+USERS_FILE = DATA_FOLDER / users_filename
+PROJECTS_FILE = DATA_FOLDER / projects_filename
+COMPONENTS_FILE = DATA_FOLDER / components_filename
+SETUPS_FILE = DATA_FOLDER / setups_filename
+
+CONFIG = JsonData._from_json(CONFIG_FILE)
 LOCAL_TIMEZONE = get_localzone()  # pytz object with local timezone info
 
-USERS = JsonData._from_json(DATA_FOLDER / 'users.json')
-PROJECTS = JsonData._from_json(DATA_FOLDER / 'projects.json')
-COMPONENTS = JsonData._from_json(DATA_FOLDER / 'components.json')
-SETUPS = JsonData._from_json(DATA_FOLDER / 'setups.json')
+USERS = JsonData._from_json(USERS_FILE)
+PROJECTS = JsonData._from_json(PROJECTS_FILE)
+COMPONENTS = JsonData._from_json(COMPONENTS_FILE)
+SETUPS = JsonData._from_json(SETUPS_FILE)
