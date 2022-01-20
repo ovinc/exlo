@@ -10,9 +10,8 @@ from copy import copy
 from dateutil.parser import parse
 
 # Local imports
-from .general import DATA_FOLDER, LOCAL_TIMEZONE, JsonData
-from .general import DATA_FOLDER, CONFIG, LOCAL_TIMEZONE
-from .general import COMPONENTS, SETUPS, USERS
+from .general import CONFIG, LOCAL_TIMEZONE, LOGS_FILE, JsonData
+from .general import USERS, PROJECTS, COMPONENTS, SETUPS
 
 
 # ================================ Log class =================================
@@ -58,17 +57,11 @@ class Logger:
 
     def __init__(self):
 
-        # json files containing data and misc. info
-        self.log_file = DATA_FOLDER / CONFIG['log file']
-        self.users_file = DATA_FOLDER / 'users.json'
-        self.setups_file = DATA_FOLDER / 'setups.json'
-        self.projects_file = DATA_FOLDER / 'projects.json'
-
-        # Dicts of config and misc. info (users, setups etc.)
         self.config = CONFIG
-        self.users = JsonData._from_json(self.users_file)
-        self.setups = JsonData._from_json(self.setups_file)
-        self.projects = JsonData._from_json(self.projects_file)
+        self.users = USERS
+        self.projects = PROJECTS
+        self.components = COMPONENTS
+        self.setups = SETUPS
 
         try:
             self.logs = self.load()
@@ -182,10 +175,10 @@ class Logger:
 
     def load(self):
         """Load logs stored in .json file into a dictionary."""
-        log_list = JsonData._from_json(self.log_file)
+        log_list = JsonData._from_json(LOGS_FILE)
         return {log['number']: Log(**log) for log in log_list}
 
     def save(self):
         """Save logs to json file."""
         log_list = [vars(log) for log in self.logs.values()]
-        JsonData._to_json(self.log_file, log_list)
+        JsonData._to_json(LOGS_FILE, log_list)

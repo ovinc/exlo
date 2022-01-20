@@ -1,15 +1,8 @@
 """Misc. classes for the exlo package (User, Component, Setup, Project."""
 
 
-# Standard library imports
-from datetime import datetime
-from pathlib import Path
-from dataclasses import dataclass
-from copy import copy
-import json
-
 # local imports
-from .general import JsonData
+from .general import JsonData, LOGS_FILE
 from .general import USERS, PROJECTS, COMPONENTS, SETUPS
 from .general import USERS_FILE, PROJECTS_FILE, COMPONENTS_FILE, SETUPS_FILE
 
@@ -60,13 +53,9 @@ class Component(JsonData):
         -------
         Component('Microscope').change_name_to('Stereoscope')
         """
-        if new_name in COMPONENTS:
-            raise ValueError(f'Component name {new_name} already exists!')
+        # Check name does not already exist and update components.json -------
 
-        # Update components.json ---------------------------------------------
-
-        COMPONENTS[new_name] = COMPONENTS.pop(self.name)
-        self._to_json(self.file, COMPONENTS)
+        self._update_name(new_name)
 
         # Update setups.json -------------------------------------------------
 

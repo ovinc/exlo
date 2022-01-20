@@ -13,7 +13,9 @@ import exlo_data
 DATA_FOLDER = Path(exlo_data.__file__).parent
 
 
+# ----------------------------------------------------------------------------
 # ============================= General Classes ==============================
+# ----------------------------------------------------------------------------
 
 
 class JsonData:
@@ -38,6 +40,8 @@ class JsonData:
             for key, value in data.items():
                 setattr(self, key, value)
 
+    # ======================== JSON loading / saving =========================
+
     @staticmethod
     def _from_json(file):
         """Load python data (dict or list) from json file"""
@@ -51,8 +55,64 @@ class JsonData:
         with open(file, 'w', encoding='utf8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
+    # ======================== Misc. private methods =========================
 
+    def _update_name(self, new_name):
+        """Change name of category in its own JSON file.
+
+        For example, change name of one component in components.json
+        Used by change_name_to() methods;
+        """
+        data = self.all_data
+
+        # Prevent use of existing name ---------------------------------------
+
+        if new_name in data:
+            raise ValueError(f'{self.category} name "{new_name}" already exists!')
+
+        # Update JSON file ---------------------------------------------------
+
+        data[new_name] = data.pop(self.name)
+        self._to_json(self.file, data)
+
+    def _update_logs(self, new_name):
+        """Change of name of category (e.g user, setup, project etc.) in logs.json
+
+        Used by change_name_to() methods;
+        """
+        log_list = self._from_json(LOGS_FILE)  # list of dicts
+
+        for log_data in log_list:
+            if log_data[self.category] == self.name:
+                log_data[self.category] = new_name
+
+        self._to_json(LOGS_FILE, log_list)
+
+    # ============================ Public methods ============================
+
+    def change_name_to(self, new_name):
+        """Update name of category in all places where it needs to be changed.
+
+        For example for category 'setup', this method will update the name of
+        the setup in
+        - setups.json
+        - logs.json
+
+        Input
+        -----
+        new_name: str
+
+        Example
+        -------
+        Setup('Optic1').change_name_to('Optic1-Old')
+        """
+        self._update_name(new_name)
+        self._update_logs(new_name)
+
+
+# ----------------------------------------------------------------------------
 # =============================== Misc. Config ===============================
+# ----------------------------------------------------------------------------
 
 config_filename = 'config.json'
 users_filename = 'users.json'
@@ -60,7 +120,9 @@ projects_filename = 'projects.json'
 components_filename = 'components.json'
 setups_filename = 'setups.json'
 
+# ----------------------------------------------------------------------------
 # ============================= Misc. Constants ==============================
+# ----------------------------------------------------------------------------
 
 CONFIG_FILE = DATA_FOLDER / config_filename
 USERS_FILE = DATA_FOLDER / users_filename
@@ -75,3 +137,5 @@ USERS = JsonData._from_json(USERS_FILE)
 PROJECTS = JsonData._from_json(PROJECTS_FILE)
 COMPONENTS = JsonData._from_json(COMPONENTS_FILE)
 SETUPS = JsonData._from_json(SETUPS_FILE)
+
+LOGS_FILE = DATA_FOLDER / CONFIG['log file']
