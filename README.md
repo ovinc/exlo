@@ -19,6 +19,8 @@ pip install -e .
 Quick start
 ===========
 
+## Configuration
+
 The companion `exlo_data` module contains several `json` files that need to be filled before being able to use the logger :
 
 - `config.json` (misc. configuration)
@@ -26,7 +28,9 @@ The companion `exlo_data` module contains several `json` files that need to be f
 - `setups.json` (list of setups and related info)
 - `projects.json` (list of projects the equipment can be used for).
 
-Once this configuration step is done, one can instantiate and use the `Logger` class to create and manage logs for the equipment:
+## Logging use of equipment
+
+Once the configuration step is done, one can instantiate and use the `Logger` class to create and manage logs for the equipment:
 
 ```python
 from exlo import Logger
@@ -69,6 +73,8 @@ log.end_datetime
 log.duration
 ```
 
+## Python objects representing users, projects, components, setups
+
 The users, projects, components and setup are also represented by classes (`User`, `Project`, `Component`, `Setup`, respectively), which define their attributes automatically from the `.json` files:
 
 ```python
@@ -88,6 +94,21 @@ The `Setup` class also has a method to check that the listed components are inde
 setup.check_components()
 ```
 which raises a `UnknownComponent` exception.
+
+## Batch change of names of users, projects, components, setups
+
+It's possible to change the name (identifier) of a user, project, component or setup everywhere in the system at once by using the `change_name_to()` methods of the corresponding classes. For example,
+```python
+from exlo import User, Project, Component, Setup
+
+User('Cam').change_name_to('Camille')
+Project('Dupont-ERC-2020').change_name_to('ERC')
+Component('Microscope').change_name_to('Stereoscope')
+Setup('Optic1').change_name_to('Optic1-Old')
+```
+This will change the identifier names anywhere they need to be changed in the JSON files, including *logs.json* (and for components, in the *setups.json* file).
+
+It is probably wise to restart the python console and re-import **exlo** after calling `change_name_to()`, because some variables in memory don't automatically re-load data from the JSON files.
 
 
 Testing
