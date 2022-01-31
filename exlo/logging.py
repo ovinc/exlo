@@ -5,13 +5,16 @@
 from datetime import datetime
 from dataclasses import dataclass
 from copy import copy
+from pathlib import Path
 
 # Non standard imports
 from dateutil.parser import parse
+import pandas as pd
 
 # Local imports
 from .general import CONFIG, LOCAL_TIMEZONE, LOGS_FILE, JsonData
 from .general import USERS, PROJECTS, COMPONENTS, SETUPS
+from .misc import Setup
 
 
 # ================================ Log class =================================
@@ -182,3 +185,66 @@ class Logger:
         """Save logs to json file."""
         log_list = [vars(log) for log in self.logs.values()]
         JsonData._to_json(LOGS_FILE, log_list)
+
+    def to_excel(self, savepath='.', filename='Logs.xlsx', user=None,
+                 setup=None, project=None, start=None, end=None):
+        """Export logs to Excel file with sheets corresponding to components.
+
+        Parameters
+        ----------
+        - savepath (str or path object): directory in which to save data
+        - filename (str): name of Excel file to generate
+        - user (str): if not None, keep only logs from a specific user
+        - setup (str): if not None, keep only logs on a specific setup
+        - project (str): if not None, keep only logs for a specific project
+        - start, end: if not None, only keep logs between specific dates
+        """
+        folder = Path(savepath)
+        folder.mkdir(exist_ok=True)
+        savefile = folder / filename
+
+        columns = ('user', 'project', 'setup', 'start', 'end',
+                   'duration', 'number', 'note')
+
+        all_data = {}
+
+        for component in self.components:
+
+            data = {column: [] for column in columns}
+
+            for log in self.logs.values():
+
+                setup = Setup(log.setup)
+
+                if component in setup.components:
+
+                    for column in columns:
+                        exec(f'data[column].append(log.{column})')
+
+            all_data[component] = data
+
+        with pd.ExcelWriter(savefile, datetime_format='[h]:mm') as writer:
+
+            component_info = pd.DataFrame(self.components)
+            component_info.to_excel(writer, sheet_name='(Info) - Components')
+
+            setup_info = pd.DataFrame(self.setups)
+            setup_info.to_excel(writer, sheet_name='(Info) Setups')
+
+            user_info = pd.DataFrame(self.users)
+            user_info.to_excel(writer, sheet_name='(Info) Users')
+
+            project_info = pd.DataFrame(self.projects)
+            project_info.to_excel(writer, sheet_name='(Info) Projects')
+
+            # hack to save datetimes correctly (see https://stackoverflow.com/
+            # questions/46523178/formatting-timedelta64-when-using-pandas-to-excel)
+            t0 = pd.Timestamp('1900-01-01')
+
+            for component, data in all_data.items():
+
+                component_data = pd.DataFrame(data)
+                component_data['duration'] = component_data['duration'] + t0
+
+                name = f'(Data) {component}'
+                component_data.to_excel(writer, sheet_name=name)

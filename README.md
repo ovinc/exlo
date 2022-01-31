@@ -73,6 +73,25 @@ log.end_datetime
 log.duration
 ```
 
+## Export logs to Excel
+
+The `Logger` class has a `to_excel()` method that exports the info on users, projects, components, setups and logs into an Excel file.
+
+The logs are separated for each component, and separate sheets in the Excel file represent the log data corresponding to every component. If a setup contains several components, this means that a log with this setup will be duplicated in all sheets of the corresponding components.
+
+To do the export, just `cd` into the directory where you want the file to be generated and:
+```python
+from exlo import Logger
+logger = Logger()
+logger.to_excel()
+```
+This will generate a file `Logs.xlsx` in the current directory.
+
+It is also possible to specify a path for saving and/or change the filename:
+```python
+logger.to_excel(savepath='D:/Data/Logs', filename='Log_Data.xlsx')
+```
+
 ## Python objects representing users, projects, components, setups
 
 The users, projects, components and setup are also represented by classes (`User`, `Project`, `Component`, `Setup`, respectively), which define their attributes automatically from the `.json` files:
