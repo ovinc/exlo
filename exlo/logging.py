@@ -219,7 +219,10 @@ class Logger:
                 if component in setup.components:
 
                     for column in columns:
-                        exec(f'data[column].append(log.{column})')
+                        if column == 'duration':
+                            exec(f'data[column].append(str(log.{column}))')
+                        else:
+                            exec(f'data[column].append(log.{column})')
 
             all_data[component] = data
 
@@ -241,12 +244,11 @@ class Logger:
 
             # hack to save datetimes correctly (see https://stackoverflow.com/
             # questions/46523178/formatting-timedelta64-when-using-pandas-to-excel)
-            t0 = pd.Timestamp('1900-01-01')
+            # t0 = pd.Timestamp('1900-01-01')
 
             for component, data in all_data.items():
 
                 component_data = pd.DataFrame(data).sort_values('start')
-                component_data['duration'] = component_data['duration'] + t0
 
                 name = f'(Data) {component}'
                 component_data.to_excel(writer,
