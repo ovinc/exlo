@@ -225,17 +225,19 @@ class Logger:
 
         with pd.ExcelWriter(savefile, datetime_format='[h]:mm') as writer:
 
-            component_info = pd.DataFrame(self.components)
-            component_info.to_excel(writer, sheet_name='(Info) - Components')
+            info = {'(Info) - Components': self.components,
+                    '(Info) Setups': self.setups,
+                    '(Info) Users': self.users,
+                    '(Info) Projects': self.projects}
 
-            setup_info = pd.DataFrame(self.setups)
-            setup_info.to_excel(writer, sheet_name='(Info) Setups')
+            for info_name, info_data in info.items():
 
-            user_info = pd.DataFrame(self.users)
-            user_info.to_excel(writer, sheet_name='(Info) Users')
+                pd.DataFrame(info_data).to_excel(writer,
+                                                 sheet_name=info_name,
+                                                 startrow=2)
 
-            project_info = pd.DataFrame(self.projects)
-            project_info.to_excel(writer, sheet_name='(Info) Projects')
+                # Add title in first cell
+                writer.sheets[info_name].write(0, 0, info_name)
 
             # hack to save datetimes correctly (see https://stackoverflow.com/
             # questions/46523178/formatting-timedelta64-when-using-pandas-to-excel)
@@ -243,8 +245,14 @@ class Logger:
 
             for component, data in all_data.items():
 
-                component_data = pd.DataFrame(data)
+                component_data = pd.DataFrame(data).sort_values('start')
                 component_data['duration'] = component_data['duration'] + t0
 
                 name = f'(Data) {component}'
-                component_data.to_excel(writer, sheet_name=name)
+                component_data.to_excel(writer,
+                                        sheet_name=name,
+                                        index=False,
+                                        startrow=2)
+
+                # Add title in first cell
+                writer.sheets[name].write(0, 0, name)
