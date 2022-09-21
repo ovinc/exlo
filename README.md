@@ -23,9 +23,10 @@ Quick start
 
 The companion `exlo_data` module contains several `json` files that need to be filled before being able to use the logger :
 
-- `config.json` (misc. configuration)
-- `users.json` (list of users and their information)
-- `setups.json` (list of setups and related info)
+- `config.json` (misc. configuration),
+- `users.json` (list of users and their information),
+- `components.json` (list of individual pieces of equipment that constitute the *setups* below),
+- `setups.json` (list of setups and related info),
 - `projects.json` (list of projects the equipment can be used for).
 
 ## Logging use of equipment
