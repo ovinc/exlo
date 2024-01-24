@@ -92,14 +92,15 @@ class Logger:
         return params
 
     @staticmethod
-    def _format_datetime(datetime_str: str) -> str:
-        """Format input datetime into correct str format for json saving etc."""
-
-        # Transform loose str (e.g. '9am') into timezone-aware datetime
+    def _parse_datetime(datetime_str: str) -> datetime:
+        """Transform loose str (e.g. '9am') into timezone-aware datetime"""
         dt = parse(datetime_str, fuzzy=True, dayfirst=True)
         dt_aware = LOCAL_TIMEZONE.localize(dt) if dt.tzinfo is None else dt
+        return dt_aware
 
-        # Format into standardized string
+    @staticmethod
+    def _format_datetime(dt_aware: datetime) -> str:
+        """Format tz-aware datetime into correct str format for json saving etc."""
         return dt_aware.strftime(CONFIG["datetime format"])
 
     def _format_parameters(self, params):
@@ -118,7 +119,10 @@ class Logger:
             raise ValueError('Unknown project. Check projects.json')
 
         for param in ('start', 'end'):
-            params[param] = self._format_datetime(params[param])
+            dt_str_in = params[param]
+            dt_aware = self._parse_datetime(dt_str_in)
+            dt_str_out = self._format_datetime(dt_aware)
+            params[param] = dt_str_out
 
     # ---------------------------- Public methods ----------------------------
 
@@ -186,25 +190,48 @@ class Logger:
         log_list = [vars(log) for log in self.logs.values()]
         JsonData._to_json(LOGS_FILE, log_list)
 
-    def to_excel(self, savepath='.', filename='Logs.xlsx', user=None,
-                 setup=None, project=None, start=None, end=None):
+    def to_excel(
+        self,
+        savepath='.',
+        filename='Logs.xlsx',
+        min_date=None,
+        max_date=None,
+    ):
         """Export logs to Excel file with sheets corresponding to components.
 
         Parameters
         ----------
         - savepath (str or path object): directory in which to save data
         - filename (str): name of Excel file to generate
-        - user (str): if not None, keep only logs from a specific user
-        - setup (str): if not None, keep only logs on a specific setup
-        - project (str): if not None, keep only logs for a specific project
-        - start, end: if not None, only keep logs between specific dates
+        - min_date (str): if not None, consider only logs with end >= min_date
+        - max_date (str): if not None, consider only logs with start <= max_date
         """
         folder = Path(savepath)
         folder.mkdir(exist_ok=True)
         savefile = folder / filename
 
-        columns = ('user', 'project', 'setup', 'start', 'end',
-                   'duration', 'number', 'note')
+        def filter_dates(data):
+            """return pandas data only within input min and max dates"""
+            if min_date is not None:
+                dt_end = pd.to_datetime(data['end'])
+                dt_min = self._parse_datetime(min_date)
+                data = data[dt_end >= dt_min]
+            if max_date is not None:
+                dt_start = pd.to_datetime(data['start'])
+                dt_max = self._parse_datetime(max_date)
+                data = data[dt_start <= dt_max]
+            return data
+
+        columns = (
+            'user',
+            'project',
+            'setup',
+            'start',
+            'end',
+            'duration',
+            'number',
+            'note',
+        )
 
         all_data = {}
 
@@ -219,25 +246,29 @@ class Logger:
                 if component in setup.components:
 
                     for column in columns:
+                        column_data = getattr(log, column)
                         if column == 'duration':
-                            exec(f'data[column].append(str(log.{column}))')
-                        else:
-                            exec(f'data[column].append(log.{column})')
+                            column_data = str(column_data)
+                        data[column].append(column_data)
 
             all_data[component] = data
 
         with pd.ExcelWriter(savefile, datetime_format='[h]:mm') as writer:
 
-            info = {'(Info) - Components': self.components,
-                    '(Info) Setups': self.setups,
-                    '(Info) Users': self.users,
-                    '(Info) Projects': self.projects}
+            info = {
+                '(Info) - Components': self.components,
+                '(Info) Setups': self.setups,
+                '(Info) Users': self.users,
+                '(Info) Projects': self.projects,
+            }
 
             for info_name, info_data in info.items():
 
-                pd.DataFrame(info_data).to_excel(writer,
-                                                 sheet_name=info_name,
-                                                 startrow=2)
+                pd.DataFrame(info_data).to_excel(
+                    writer,
+                    sheet_name=info_name,
+                    startrow=2,
+                )
 
                 # Add title in first cell
                 writer.sheets[info_name].write(0, 0, info_name)
@@ -249,12 +280,15 @@ class Logger:
             for component, data in all_data.items():
 
                 component_data = pd.DataFrame(data).sort_values('start')
+                component_data_final = filter_dates(component_data)
 
                 name = f'(Data) {component}'
-                component_data.to_excel(writer,
-                                        sheet_name=name,
-                                        index=False,
-                                        startrow=2)
+                component_data_final.to_excel(
+                    writer,
+                    sheet_name=name,
+                    index=False,
+                    startrow=2,
+                )
 
                 # Add title in first cell
                 writer.sheets[name].write(0, 0, name)

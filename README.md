@@ -88,10 +88,19 @@ logger.to_excel()
 ```
 This will generate a file `Logs.xlsx` in the current directory.
 
+Export of logs can also be filtered by date:
+```python
+logger.to_excel(min_date='Jan 1, 2023', max_date='Dec. 31, 2024')
+```
+(note that if a log spans before and after the min/max dates, it will be included, i.e. only the end time of the log is considered for the min date, and only the start time of the log is considered for the max date).
+
 It is also possible to specify a path for saving and/or change the filename:
 ```python
 logger.to_excel(savepath='D:/Data/Logs', filename='Log_Data.xlsx')
 ```
+
+**NOTE:** If `to_excel` generates an error *AttributeError: 'Worksheet' object has no attribute 'write'*, it may be that `xslxwriter` is not installed. This can be fixed with `pip install xlsxwriter`.
+
 
 ## Python objects representing users, projects, components, setups
 
